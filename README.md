@@ -1,2 +1,2 @@
 # angryBird
-a sample angryBird with box2d
+a simple angryBird with box2d
