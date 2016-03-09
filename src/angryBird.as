@@ -26,8 +26,8 @@ package
 		private var world:b2World;
 		private var _mouseJoint:b2MouseJoint;
 		private var birdSp:birdSprite = new birdSprite();
-		private var birdSpInitX:Number = 100;
-		private var birdSpInitY:Number = 100; 
+		private var birdSpInitX:Number = 120;
+		private var birdSpInitY:Number = 400; 
 		
 		public function angryBird() 
 		{
@@ -38,7 +38,7 @@ package
 			graphics.endFill();
 		}
 		
-		public function init():void {
+		private function init():void {
 		    world = CreateUtils.CreateWorld();
 			CreateUtils.CreateDebug(world, stage);
 			CreateUtils.CreateWalls(world, stage);
@@ -48,11 +48,17 @@ package
 			addChild(birdSp);
 			birdSp.buttonMode = true;
 			
+			for (var i:int = 4; i > 0; i --) {
+			    for (var j:int = 0; j < i; j ++) {
+					addPig(stage.stageWidth/30/4*3 + j + (4-i)*.5, stage.stageHeight/30 - 1 - (4-i));
+				}
+			}
+			
 			addEventListener(Event.ENTER_FRAME, update);
 			birdSp.addEventListener(MouseEvent.MOUSE_DOWN, birdClicked);
 		}
 		
-		public function update(e:Event):void {			
+		private function update(e:Event):void {			
 			world.Step(1 / 30, 10, 10);
 			
 			for (var currentBody:b2Body = world.GetBodyList(); currentBody; currentBody = currentBody.GetNext()) {
@@ -68,14 +74,14 @@ package
 			world.DrawDebugData();
 		}
 		
-		public function birdClicked(e:MouseEvent):void {
+		private function birdClicked(e:MouseEvent):void {
 			trace("click");
-		    addEventListener(MouseEvent.MOUSE_MOVE, birdMove);
+		    addEventListener(MouseEvent.MOUSE_MOVE, birdMoved);
 			addEventListener(MouseEvent.MOUSE_UP, birdReleased);
 			birdSp.removeEventListener(MouseEvent.MOUSE_DOWN, birdClicked);
 		}
 			
-		public function birdMove(e:MouseEvent):void {
+		private function birdMoved(e:MouseEvent):void {
 			trace("move");
 		    birdSp.x = mouseX;
 			birdSp.y = mouseY;
@@ -88,12 +94,12 @@ package
 			}
 		}
 		
-		public function birdReleased(e:MouseEvent):void {
+		private function birdReleased(e:MouseEvent):void {
 			trace("up");
 			birdSp.buttonMode = false;
-			removeEventListener(MouseEvent.MOUSE_MOVE, birdMove);
+			removeEventListener(MouseEvent.MOUSE_MOVE, birdMoved);
 			removeEventListener(MouseEvent.MOUSE_UP, birdReleased);
-			var bird:b2Body = createBird();
+			var bird:b2Body = addBird();
 			var distanceX:Number = birdSp.x - birdSpInitX;
 			var distanceY:Number = birdSp.y - birdSpInitY;
 			var distance:Number = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
@@ -101,13 +107,13 @@ package
 			bird.SetLinearVelocity(new b2Vec2(-distance * Math.cos(birdAngle)/4, -distance * Math.sin(birdAngle)/4));   //为什么要-distance*Math.con(birdAngle)
 		}
 		
-		public function createBird():b2Body {		    
+		private function addBird():b2Body {		    
 			var birdDef:b2BodyDef = new b2BodyDef();
 			var birdShape:b2CircleShape = new b2CircleShape(.5);
 			var birdFixtureDef:b2FixtureDef = new b2FixtureDef();
 			
 			birdFixtureDef.shape = birdShape;
-			birdFixtureDef.density = 1;
+			birdFixtureDef.density = 2;
 			birdFixtureDef.restitution = 0.6;
 			birdDef.position.Set(birdSp.x / 30, birdSp.y / 30);
 			birdDef.type = b2Body.b2_dynamicBody;
@@ -116,6 +122,21 @@ package
 			bird.CreateFixture(birdFixtureDef);
 			
 			return bird;
+		}
+		
+		private function addPig(x:Number, y:Number):void {
+		    var pigDef:b2BodyDef = new b2BodyDef();
+			var pigShape:b2PolygonShape = new b2PolygonShape();
+			var pigFixtureDef:b2FixtureDef = new b2FixtureDef();
+			
+			pigShape.SetAsBox(.5, .5);
+			pigFixtureDef.shape = pigShape;
+			pigFixtureDef.density = 1;
+			pigFixtureDef.restitution = 0.4;
+			pigDef.position.Set(x, y);
+			pigDef.type = b2Body.b2_dynamicBody;
+			var pig:b2Body = world.CreateBody(pigDef);
+			pig.CreateFixture(pigFixtureDef);
 		}
 		
 	}
