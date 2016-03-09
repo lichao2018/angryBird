@@ -28,6 +28,7 @@ package
 		private var birdSp:birdSprite = new birdSprite();
 		private var birdSpInitX:Number = 120;
 		private var birdSpInitY:Number = 400; 
+		private var bird:b2Body;
 		
 		public function angryBird() 
 		{
@@ -76,8 +77,8 @@ package
 		
 		private function birdClicked(e:MouseEvent):void {
 			trace("click");
-		    addEventListener(MouseEvent.MOUSE_MOVE, birdMoved);
-			addEventListener(MouseEvent.MOUSE_UP, birdReleased);
+		    stage.addEventListener(MouseEvent.MOUSE_MOVE, birdMoved);
+			stage.addEventListener(MouseEvent.MOUSE_UP, birdReleased);
 			birdSp.removeEventListener(MouseEvent.MOUSE_DOWN, birdClicked);
 		}
 			
@@ -97,9 +98,9 @@ package
 		private function birdReleased(e:MouseEvent):void {
 			trace("up");
 			birdSp.buttonMode = false;
-			removeEventListener(MouseEvent.MOUSE_MOVE, birdMoved);
-			removeEventListener(MouseEvent.MOUSE_UP, birdReleased);
-			var bird:b2Body = addBird();
+			stage.removeEventListener(MouseEvent.MOUSE_MOVE, birdMoved);
+			stage.removeEventListener(MouseEvent.MOUSE_UP, birdReleased);
+			bird = addBird();
 			var distanceX:Number = birdSp.x - birdSpInitX;
 			var distanceY:Number = birdSp.y - birdSpInitY;
 			var distance:Number = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
