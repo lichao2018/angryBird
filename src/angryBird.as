@@ -1,17 +1,9 @@
 package 
 {
-	import Box2D.Collision.Shapes.b2CircleShape;
-	import Box2D.Collision.Shapes.b2PolygonShape;
-	import Box2D.Collision.Shapes.b2Shape;
-	import Box2D.Common.Math.b2Vec2;
-	import Box2D.Dynamics.b2Body;
-	import Box2D.Dynamics.b2BodyDef;
-	import Box2D.Dynamics.b2Fixture;
-	import Box2D.Dynamics.b2FixtureDef;
-	import Box2D.Dynamics.Joints.b2MouseJoint;
-	import Box2D.Dynamics.Joints.b2MouseJointDef;
-	import Box2D.Dynamics.Joints.b2RevoluteJoint;
-	import Box2D.Dynamics.Joints.b2RevoluteJointDef;
+	import Box2D.Collision.Shapes.*;
+	import Box2D.Common.Math.*;
+	import Box2D.Dynamics.*;
+	import Box2D.Dynamics.Joints.*;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
@@ -41,12 +33,12 @@ package
 		
 		private function init():void {
 		    world = CreateUtils.CreateWorld();
-			CreateUtils.CreateDebug(world, stage);
+			addChild(CreateUtils.CreateDebug(world, stage));
 			CreateUtils.CreateWalls(world, stage);
 			
 			birdSp.x = birdSpInitX;
 			birdSp.y = birdSpInitY;
-			stage.addChild(birdSp);
+			addChild(birdSp);
 			birdSp.buttonMode = true;
 			
 			for (var i:int = 4; i > 0; i --) {
@@ -70,6 +62,15 @@ package
 				    sprite.rotation=currentBody.GetAngle()*(180/Math.PI);	
 				}
 			}
+			
+			var posX:Number = stage.stageWidth / 2 - birdSp.x;
+			if (posX > 0) {
+			    posX = 0;	
+			}
+			if (posX < -800) {
+			    posX = -800;
+			}
+			x = posX;
 			
 			world.ClearForces();
 			world.DrawDebugData();

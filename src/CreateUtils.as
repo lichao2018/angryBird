@@ -32,28 +32,29 @@ package
 			var fixtureDef:b2FixtureDef = new b2FixtureDef();
 			var polygonShape:b2PolygonShape = new b2PolygonShape();
 			
-			bodyDef.position.Set(stage.stageWidth / 30 / 2, 0);
+			//up
+			bodyDef.position.Set(stage.stageWidth / 30, 0);
 			bodyDef.type = b2Body.b2_staticBody;
-			polygonShape.SetAsBox(stage.stageWidth / 30 / 2, .5);
+			polygonShape.SetAsBox(stage.stageWidth / 30, .5);
 			fixtureDef.shape = polygonShape;
 			var upWall:b2Body = world.CreateBody(bodyDef);
 			upWall.CreateFixture(fixtureDef);
-			
-			bodyDef.position.Set(stage.stageWidth / 30 / 2, stage.stageHeight / 30);
+			//down
+			bodyDef.position.Set(stage.stageWidth / 30, stage.stageHeight / 30);
 			bodyDef.type = b2Body.b2_staticBody;
-			polygonShape.SetAsBox(stage.stageWidth / 30 / 2, .5);
+			polygonShape.SetAsBox(stage.stageWidth / 30, .5);
 			fixtureDef.shape = polygonShape;
 			var downWall:b2Body = world.CreateBody(bodyDef);
 			downWall.CreateFixture(fixtureDef);
-			
+			//left
 			bodyDef.position.Set(0, stage.stage.stageHeight / 30 / 2);
 			bodyDef.type = b2Body.b2_staticBody;
 			polygonShape.SetAsBox(.5, stage.stageHeight / 30 / 2);
 			fixtureDef.shape = polygonShape;
 			var leftWall:b2Body = world.CreateBody(bodyDef);
 			leftWall.CreateFixture(fixtureDef);
-			
-			bodyDef.position.Set(stage.stageWidth / 30, stage.stageHeight / 30 / 2);
+			//right
+			bodyDef.position.Set(stage.stageWidth / 30 * 2, stage.stageHeight / 30 / 2);
 			bodyDef.type = b2Body.b2_staticBody;
 			polygonShape.SetAsBox(.5, stage.stageHeight / 30 / 2);
 			fixtureDef.shape = polygonShape;
@@ -103,15 +104,16 @@ package
 			return body;
 		}
 		
-		public static function CreateDebug(world:b2World, stage:Stage):void {
+		public static function CreateDebug(world:b2World, stage:Stage):Sprite {
 			var debugDraw:b2DebugDraw = new b2DebugDraw();
 			var debugSprite:Sprite = new Sprite();
 			debugDraw.SetDrawScale(30);
-			stage.addChild(debugSprite);
+			//stage.addChild(debugSprite);
 			debugDraw.SetSprite(debugSprite);
 			debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit | b2DebugDraw.e_centerOfMassBit);
 			debugDraw.SetAlpha(0.5);
 			world.SetDebugDraw(debugDraw);
+			return debugSprite;
 		}
 	}
 
