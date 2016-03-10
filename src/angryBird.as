@@ -26,7 +26,7 @@ package
 		private var world:b2World;
 		private var _mouseJoint:b2MouseJoint;
 		private var birdSp:birdSprite = new birdSprite();
-		private var birdSpInitX:Number = 120;
+		private var birdSpInitX:Number = 150;
 		private var birdSpInitY:Number = 400; 
 		private var bird:b2Body;
 		
@@ -46,7 +46,7 @@ package
 			
 			birdSp.x = birdSpInitX;
 			birdSp.y = birdSpInitY;
-			addChild(birdSp);
+			stage.addChild(birdSp);
 			birdSp.buttonMode = true;
 			
 			for (var i:int = 4; i > 0; i --) {
@@ -146,7 +146,7 @@ package
 
 class birdSprite extends flash.display.Sprite {
 	public function birdSprite() {
-	    graphics.beginFill(0xff, .2);
+	    graphics.beginFill(0xff, 1);
 		graphics.drawCircle(0, 0, 15);
 		graphics.endFill();
 	}
