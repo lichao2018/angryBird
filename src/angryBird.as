@@ -3,6 +3,7 @@ package
 	import Box2D.Collision.Shapes.*;
 	import Box2D.Common.Math.*;
 	import Box2D.Dynamics.*;
+	import Box2D.Dynamics.Contacts.b2Contact;
 	import Box2D.Dynamics.Joints.*;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -21,6 +22,8 @@ package
 		private var birdSpInitX:Number = 150;
 		private var birdSpInitY:Number = 400; 
 		private var bird:b2Body;
+		private var screenDraging:Boolean;
+		private var screenX:Number;
 		
 		public function angryBird() 
 		{
@@ -43,12 +46,35 @@ package
 			
 			for (var i:int = 4; i > 0; i --) {
 			    for (var j:int = 0; j < i; j ++) {
-					addPig(stage.stageWidth/30/4*3 + j + (4-i)*.5, stage.stageHeight/30 - 1 - (4-i));
+					addPig(stage.stageWidth/30 + j + (4-i)*.5, stage.stageHeight/30 - 1 - (4-i));
 				}
 			}
 			
 			addEventListener(Event.ENTER_FRAME, update);
+			stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
+			stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
+			stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
 			birdSp.addEventListener(MouseEvent.MOUSE_DOWN, birdClicked);
+		}
+		
+		private function onMouseDown(e:MouseEvent):void {
+			screenDraging = true;
+		}
+		
+		private function onMouseMove(e:MouseEvent):void {
+			if (screenDraging) {
+				screenX = stage.stageWidth / 2 - mouseX;
+				if (screenX > 0) {
+					screenX = 0;
+				}
+				if (screenX < -800) {
+					screenX = -800;
+				}
+			}
+		}
+		
+		private function onMouseUp(e:MouseEvent):void {
+			screenDraging = false;
 		}
 		
 		private function update(e:Event):void {			
@@ -56,28 +82,47 @@ package
 			
 			for (var currentBody:b2Body = world.GetBodyList(); currentBody; currentBody = currentBody.GetNext()) {
 			    if (currentBody.GetUserData()) {
-					var sprite:Sprite = currentBody.GetUserData() as Sprite;
-					sprite.x=currentBody.GetPosition().x*30;
-					sprite.y=currentBody.GetPosition().y*30;
-				    sprite.rotation=currentBody.GetAngle()*(180/Math.PI);	
+					if (currentBody.GetUserData().name == "bird") {
+						var sprite:Sprite = currentBody.GetUserData() as Sprite;
+						sprite.x=currentBody.GetPosition().x*30;
+						sprite.y=currentBody.GetPosition().y*30;
+						sprite.rotation=currentBody.GetAngle()*(180/Math.PI);
+					}
 				}
 			}
 			
-			var posX:Number = stage.stageWidth / 2 - birdSp.x;
-			if (posX > 0) {
-			    posX = 0;	
+			if (screenDraging) {
+				x = screenX;
 			}
-			if (posX < -800) {
-			    posX = -800;
+			else {
+				var posX:Number = stage.stageWidth / 2 - birdSp.x;
+				if (posX > 0) {
+					posX = 0;	
+				}
+				if (posX < -800) {
+					posX = -800;
+			    }
+			    x = posX;
+			}		
+			
+			var contactList:b2Contact = world.GetContactList();
+			if (contactList != null) {
+				var bodyA:b2Body = contactList.GetFixtureA().GetBody();
+				var bodyB:b2Body = contactList.GetFixtureB().GetBody();
+				if (bodyA.GetUserData() && bodyB.GetUserData()) {
+					if (bodyA.GetUserData().name == "bird" && bodyB.GetUserData().name == "pig") {
+						trace(11111);
+					}else if (bodyA.GetUserData().name == "pig" && bodyB.GetUserData().name == "bird") {
+						trace(22222);
+					}
+				}
 			}
-			x = posX;
 			
 			world.ClearForces();
 			world.DrawDebugData();
 		}
 		
 		private function birdClicked(e:MouseEvent):void {
-			trace("click");
 		    stage.addEventListener(MouseEvent.MOUSE_MOVE, birdMoved);
 			stage.addEventListener(MouseEvent.MOUSE_UP, birdReleased);
 			birdSp.removeEventListener(MouseEvent.MOUSE_DOWN, birdClicked);
@@ -97,7 +142,6 @@ package
 		}
 		
 		private function birdReleased(e:MouseEvent):void {
-			trace("up");
 			birdSp.buttonMode = false;
 			stage.removeEventListener(MouseEvent.MOUSE_MOVE, birdMoved);
 			stage.removeEventListener(MouseEvent.MOUSE_UP, birdReleased);
@@ -120,12 +164,13 @@ package
 			birdDef.position.Set(birdSp.x / 30, birdSp.y / 30);
 			birdDef.type = b2Body.b2_dynamicBody;
 			birdDef.userData = birdSp;
+			birdSp.name = "bird";
 			var bird:b2Body = world.CreateBody(birdDef);
 			bird.CreateFixture(birdFixtureDef);
 			
 			return bird;
 		}
-		
+
 		private function addPig(x:Number, y:Number):void {
 		    var pigDef:b2BodyDef = new b2BodyDef();
 			var pigShape:b2PolygonShape = new b2PolygonShape();
@@ -137,6 +182,7 @@ package
 			pigFixtureDef.restitution = 0.4;
 			pigDef.position.Set(x, y);
 			pigDef.type = b2Body.b2_dynamicBody;
+			pigDef.userData = { name:"pig" };
 			var pig:b2Body = world.CreateBody(pigDef);
 			pig.CreateFixture(pigFixtureDef);
 		}
@@ -146,6 +192,7 @@ package
 }
 
 class birdSprite extends flash.display.Sprite {
+	
 	public function birdSprite() {
 	    graphics.beginFill(0xff, 1);
 		graphics.drawCircle(0, 0, 15);
