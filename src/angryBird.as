@@ -5,9 +5,12 @@ package
 	import Box2D.Dynamics.*;
 	import Box2D.Dynamics.Contacts.b2Contact;
 	import Box2D.Dynamics.Joints.*;
+	import flash.display.SimpleButton;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.text.TextField;
+	import mx.core.FlexSimpleButton;
 	
 	import Box2D.Dynamics.b2World;
 	/**
@@ -27,6 +30,7 @@ package
 		
 		public function angryBird() 
 		{
+			setUI();
 			init();
 			
 			graphics.beginFill(0x9999, .1);
@@ -44,12 +48,12 @@ package
 			addChild(birdSp);
 			birdSp.buttonMode = true;
 			
-			for (var i:int = 4; i > 0; i --) {
-			    for (var j:int = 0; j < i; j ++) {
-					addPig(stage.stageWidth/30 + j + (4-i)*.5, stage.stageHeight/30 - 1 - (4-i));
-				}
+			for (var i:int = 0; i < 4; i ++) {
+				addBlock(stage.stageWidth / 30 / 2 * 3, stage.stageHeight / 30 - i -1);
+				addBlock(stage.stageWidth / 30 / 2 * 3 + 2, stage.stageHeight / 30 - i - 1);
 			}
-			
+			addPig(stage.stageWidth / 30 / 2 * 3 + 1, stage.stageHeight / 30 -1);
+						
 			addEventListener(Event.ENTER_FRAME, update);
 			stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
@@ -111,9 +115,11 @@ package
 				var bodyB:b2Body = contactList.GetFixtureB().GetBody();
 				if (bodyA.GetUserData() && bodyB.GetUserData()) {
 					if (bodyA.GetUserData().name == "bird" && bodyB.GetUserData().name == "pig") {
-						trace(11111);
+						world.DestroyBody(bodyB);
+						showResult();
 					}else if (bodyA.GetUserData().name == "pig" && bodyB.GetUserData().name == "bird") {
-						trace(22222);
+						world.DestroyBody(bodyA);
+						showResult();
 					}
 				}
 			}
@@ -129,7 +135,6 @@ package
 		}
 			
 		private function birdMoved(e:MouseEvent):void {
-			trace("move");
 		    birdSp.x = mouseX;
 			birdSp.y = mouseY;
 			var distanceX:Number = birdSp.x - birdSpInitX;
@@ -171,12 +176,27 @@ package
 			return bird;
 		}
 
+		private function addBlock(x:Number, y:Number):void {
+		    var blockDef:b2BodyDef = new b2BodyDef();
+			var blockShape:b2PolygonShape = new b2PolygonShape();
+			var blockFixtureDef:b2FixtureDef = new b2FixtureDef();
+			
+			blockShape.SetAsBox(.5, .5);
+			blockFixtureDef.shape = blockShape;
+			blockFixtureDef.density = 1;
+			blockFixtureDef.restitution = 0.4;
+			blockDef.position.Set(x, y);
+			blockDef.type = b2Body.b2_dynamicBody;
+			blockDef.userData = { name:"block" };
+			var block:b2Body = world.CreateBody(blockDef);
+			block.CreateFixture(blockFixtureDef);
+		}
+		
 		private function addPig(x:Number, y:Number):void {
-		    var pigDef:b2BodyDef = new b2BodyDef();
-			var pigShape:b2PolygonShape = new b2PolygonShape();
+			var pigDef:b2BodyDef = new b2BodyDef();
+			var pigShape:b2CircleShape = new b2CircleShape(.5);
 			var pigFixtureDef:b2FixtureDef = new b2FixtureDef();
 			
-			pigShape.SetAsBox(.5, .5);
 			pigFixtureDef.shape = pigShape;
 			pigFixtureDef.density = 1;
 			pigFixtureDef.restitution = 0.4;
@@ -187,6 +207,51 @@ package
 			pig.CreateFixture(pigFixtureDef);
 		}
 		
+		private function showResult():void {
+			var tf:TextField = new TextField();
+			tf.text = "YOU WIN.";
+			var posX:Number = stage.stageWidth / 2 - birdSp.x;
+			if (posX >= 0) {
+				tf.x = stage.stageWidth / 2;
+			}else if (posX < 0 && posX > -800) {
+				tf.x = birdSp.x;
+			}else {
+			 	tf.x = stage.stageWidth / 2 * 3;
+			}
+			tf.y = stage.stageHeight / 2;
+			addChild(tf);
+		}
+			
+		private function setUI():void {
+			var btn:buttonSprite = new buttonSprite();
+			btn.x = 50;
+			btn.y = 40;
+			addChild(btn);
+			btn.buttonMode = true;
+			btn.addEventListener(MouseEvent.MOUSE_DOWN, btnClicked);
+		}
+		
+		private function btnClicked(e:MouseEvent):void 
+		{
+			addEventListener(MouseEvent.MOUSE_UP, btnReleased);
+			removeEventListener(MouseEvent.MOUSE_DOWN, btnClicked);
+		}
+		
+		private function btnReleased(e:MouseEvent):void 
+		{
+			removeEventListener(MouseEvent.MOUSE_UP, btnReleased);
+			var body:b2Body;
+			for (body = world.GetBodyList(); body; body = body.GetNext()) {
+				if (body.GetUserData()) {
+					if (body.GetUserData().name == "bird") {
+						removeChild(body.GetUserData());
+					}
+					body.GetDefinition().userData = null;
+				}
+				world.DestroyBody(body);
+			}
+			init();
+		}
 	}
 
 }
@@ -196,6 +261,14 @@ class birdSprite extends flash.display.Sprite {
 	public function birdSprite() {
 	    graphics.beginFill(0xff, 1);
 		graphics.drawCircle(0, 0, 15);
+		graphics.endFill();
+	}
+}
+
+class buttonSprite extends flash.display.Sprite {
+	public function buttonSprite() {
+		graphics.beginFill(0x999999, .5);
+		graphics.drawRect(0, 0, 40, 20);
 		graphics.endFill();
 	}
 }
