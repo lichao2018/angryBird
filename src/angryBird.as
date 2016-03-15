@@ -27,9 +27,14 @@ package
 		private var bird:b2Body;
 		private var screenDraging:Boolean;
 		private var screenX:Number;
+		private var btn:buttonSprite;
+		private var tf:TextField;
+		private var reset:Boolean;
 		
 		public function angryBird() 
 		{
+			world = CreateUtils.CreateWorld();
+			addChild(CreateUtils.CreateDebug(world, stage));
 			setUI();
 			init();
 			
@@ -39,8 +44,6 @@ package
 		}
 		
 		private function init():void {
-		    world = CreateUtils.CreateWorld();
-			addChild(CreateUtils.CreateDebug(world, stage));
 			CreateUtils.CreateWalls(world, stage);
 			
 			birdSp.x = birdSpInitX;
@@ -52,7 +55,8 @@ package
 				addBlock(stage.stageWidth / 30 / 2 * 3, stage.stageHeight / 30 - i -1);
 				addBlock(stage.stageWidth / 30 / 2 * 3 + 2, stage.stageHeight / 30 - i - 1);
 			}
-			addPig(stage.stageWidth / 30 / 2 * 3 + 1, stage.stageHeight / 30 -1);
+			//addPig(stage.stageWidth / 30 / 2 * 3 + 1, stage.stageHeight / 30 -1);
+			addPig(15, 20);
 						
 			addEventListener(Event.ENTER_FRAME, update);
 			stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
@@ -83,6 +87,11 @@ package
 		
 		private function update(e:Event):void {			
 			world.Step(1 / 30, 10, 10);
+			
+			if (reset) {
+				reset = false;
+				removeChild(tf);
+			}
 			
 			for (var currentBody:b2Body = world.GetBodyList(); currentBody; currentBody = currentBody.GetNext()) {
 			    if (currentBody.GetUserData()) {
@@ -123,6 +132,8 @@ package
 					}
 				}
 			}
+			
+			btn.x = -x + 50;
 			
 			world.ClearForces();
 			world.DrawDebugData();
@@ -208,7 +219,7 @@ package
 		}
 		
 		private function showResult():void {
-			var tf:TextField = new TextField();
+			tf = new TextField();
 			tf.text = "YOU WIN.";
 			var posX:Number = stage.stageWidth / 2 - birdSp.x;
 			if (posX >= 0) {
@@ -223,8 +234,7 @@ package
 		}
 			
 		private function setUI():void {
-			var btn:buttonSprite = new buttonSprite();
-			btn.x = 50;
+			btn = new buttonSprite();
 			btn.y = 40;
 			addChild(btn);
 			btn.buttonMode = true;
@@ -240,14 +250,9 @@ package
 		private function btnReleased(e:MouseEvent):void 
 		{
 			removeEventListener(MouseEvent.MOUSE_UP, btnReleased);
+			reset = true;
 			var body:b2Body;
 			for (body = world.GetBodyList(); body; body = body.GetNext()) {
-				if (body.GetUserData()) {
-					if (body.GetUserData().name == "bird") {
-						removeChild(body.GetUserData());
-					}
-					body.GetDefinition().userData = null;
-				}
 				world.DestroyBody(body);
 			}
 			init();
