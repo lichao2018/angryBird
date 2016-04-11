@@ -257,7 +257,7 @@ package
 		
 		private function addPig(x:Number, y:Number):b2Body {
 			var pigDef:b2BodyDef = new b2BodyDef();
-			var pigShape:b2CircleShape = new b2CircleShape(.8);
+			var pigShape:b2CircleShape = new b2CircleShape(0.8);
 			var pigFixtureDef:b2FixtureDef = new b2FixtureDef();
 			
 			pigFixtureDef.shape = pigShape;
