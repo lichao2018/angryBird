@@ -142,7 +142,13 @@ package
 			}
 			
 			if (screenDraging) {
-				x = screenX;
+				if (x == screenX) {
+					x = screenX;
+				}else if (x > screenX) {
+					x -= 5;
+				}else {
+					x += 5;
+				}
 			}
 			else {
 				var posX:Number = stage.stageWidth / 2 - birdSp.x;
