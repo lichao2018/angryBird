@@ -35,6 +35,7 @@ package
 		private var tf:TextField;
 		private var reset:Boolean;
 		private var pig:b2Body;
+		private var pigSp:Sprite;
 		
 		public function angryBird() 
 		{
@@ -42,10 +43,7 @@ package
 				
 			addChild(CreateUtils.CreateDebug(world, stage));
 			
-			var loader:Loader = new Loader();
-			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loader_complete);
-			loader.load(new URLRequest("../bin/bird.png"));
-			
+			init();
 			setUI();
 			
 			graphics.beginFill(0x9999, .1);
@@ -53,14 +51,35 @@ package
 			graphics.endFill();
 		}
 		
+		private function init():void {
+			var loader:Loader = new Loader();
+			loader.load(new URLRequest("../bin/bird.png"));
+			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loader_complete);
+		}
+		
 		private function loader_complete(e:Event):void {
 			var target:LoaderInfo = e.currentTarget as LoaderInfo;
 			var bmp:Bitmap = target.content as Bitmap;
 			birdSp = new birdSprite(bmp);
-			init();
+			
+			var loader:Loader = new Loader();
+			loader.load(new URLRequest("../bin/pig.png"));
+			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, pig_loader_complete);
 		}
 		
-		private function init():void {
+		private function pig_loader_complete(e:Event):void {
+			var target:LoaderInfo = e.currentTarget as LoaderInfo;
+			var bmp:Bitmap = target.content as Bitmap;
+			pigSp = new Sprite();
+			addChild(pigSp);
+			bmp.x = -bmp.width / 2;
+			bmp.y = -bmp.height / 2;
+			pigSp.addChild(bmp);
+			
+			start();
+		}
+		
+		private function start():void {
 			CreateUtils.CreateWalls(world, stage);
 			
 			birdSp.x = birdSpInitX;
@@ -91,8 +110,7 @@ package
 				screenX = stage.stageWidth / 2 - mouseX;
 				if (screenX > 0) {
 					screenX = 0;
-				}
-				if (screenX < -800) {
+				}else if (screenX < -800) {
 					screenX = -800;
 				}
 			}
@@ -107,12 +125,14 @@ package
 			
 			if (reset) {
 				reset = false;
-				removeChild(tf);
+				if (tf!=null && stage.contains(tf)) {
+					removeChild(tf);
+				}
 			}
 			
 			for (var currentBody:b2Body = world.GetBodyList(); currentBody; currentBody = currentBody.GetNext()) {
 			    if (currentBody.GetUserData()) {
-					if (currentBody.GetUserData().name == "bird") {
+					if (currentBody.GetUserData().name == "bird" || currentBody.GetUserData().name == "pig") {
 						var sprite:Sprite = currentBody.GetUserData() as Sprite;
 						sprite.x=currentBody.GetPosition().x*30;
 						sprite.y=currentBody.GetPosition().y*30;
@@ -141,9 +161,11 @@ package
 				var bodyB:b2Body = contactList.GetFixtureB().GetBody();
 				if (bodyA.GetUserData() && bodyB.GetUserData()) {
 					if (bodyA.GetUserData().name == "bird" && bodyB.GetUserData().name == "pig") {
+						removeChild(pigSp);
 						world.DestroyBody(bodyB);
 						showResult();
 					}else if (bodyA.GetUserData().name == "pig" && bodyB.GetUserData().name == "bird") {
+						removeChild(pigSp);
 						world.DestroyBody(bodyA);
 						showResult();
 					}
@@ -237,7 +259,8 @@ package
 			pigFixtureDef.restitution = 0.4;
 			pigDef.position.Set(x, y);
 			pigDef.type = b2Body.b2_dynamicBody;
-			pigDef.userData = { name:"pig", life:20};
+			pigDef.userData = pigSp;
+			pigSp.name = "pig";
 			var pig:b2Body = world.CreateBody(pigDef);
 			pig.CreateFixture(pigFixtureDef);
 			return pig;
@@ -274,13 +297,19 @@ package
 		
 		private function btnReleased(e:MouseEvent):void 
 		{
-			removeEventListener(MouseEvent.MOUSE_UP, btnReleased);
 			reset = true;
 			var body:b2Body;
+			if (stage.contains(pigSp)) {
+				removeChild(pigSp);
+			}
+			if (stage.contains(birdSp)) {
+				removeChild(birdSp);
+			}
 			for (body = world.GetBodyList(); body; body = body.GetNext()) {
 				world.DestroyBody(body);
 			}
 			init();
+			removeEventListener(MouseEvent.MOUSE_UP, btnReleased);
 		}
 		
 		private function showLife():void {
@@ -301,6 +330,8 @@ class birdSprite extends flash.display.Sprite {
 	    //graphics.beginFill(0xff, 1);
 		//graphics.drawCircle(0, 0, 15);
 		//graphics.endFill();
+		bmp.x = -bmp.width / 2;
+		bmp.y = -bmp.height / 2;
 		addChild(bmp);
 	}
 }
