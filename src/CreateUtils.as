@@ -47,7 +47,7 @@ package
 			var downWall:b2Body = world.CreateBody(bodyDef);
 			downWall.CreateFixture(fixtureDef);
 			//left
-			bodyDef.position.Set(0, stage.stage.stageHeight / 30 / 2);
+			bodyDef.position.Set(0, stage.stageHeight / 30 / 2);
 			bodyDef.type = b2Body.b2_staticBody;
 			polygonShape.SetAsBox(.5, stage.stageHeight / 30 / 2);
 			fixtureDef.shape = polygonShape;
